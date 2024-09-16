@@ -3,11 +3,13 @@ from transcribe import transcribe
 from remove_vocals import remove_vocals
 from tts import atts
 import asyncio
+import argparse
 
 import get_gender
 from merge_audio_files import merge
 
 async def main(file_name: str, target_language: str):
+    print(file_name, target_language)
     # Generate subtitles
     transcribe(file_name, target_language)
 
@@ -35,4 +37,11 @@ async def main(file_name: str, target_language: str):
 
 
 if __name__ == "__main__":
-    asyncio.run(main("Making a smart closet with ML.mp4", "hi"))
+    parser = argparse.ArgumentParser(
+                    prog='AIDubsOverSubs',
+                    description='It takes a path to a video file and dubs the audio to a given language')
+    parser.add_argument("-f", "--file", required=True, help="Video file path")
+    parser.add_argument("-l", "--language", required=True, help="Target language")
+    
+    args = parser.parse_args()
+    asyncio.run(main(args.file, args.language))
