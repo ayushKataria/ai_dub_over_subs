@@ -1,4 +1,5 @@
 torchaudio
+torch
 openai-whisper
 transformers
 sentencepiece
