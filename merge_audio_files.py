@@ -10,7 +10,7 @@ def merge(file_name: str, target_language: str = ""):
     with open("concat_file.txt", "w") as file:
         file.write("file silence.wav\n")
         for subtitle in subtitles:
-            file.write(f"outpoint {max((round(subtitle['start'], 0)-1), 0)}\n")
+            file.write(f"outpoint {int(subtitle['end'])}\n")
             file.write(f"file {subtitle['file_name']}\n")
             # file.write("file silence.wav\n")
     

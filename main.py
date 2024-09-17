@@ -14,6 +14,10 @@ logging.getLogger().setLevel(logging.INFO)
 
 async def main(file_name: str, target_language: str, whisper_device: str):
 
+    kind = filetype.guess(file_name)
+    if kind != "video/mp4":
+        raise Exception("Invalid file type. It currently supports only mp4")
+
     print(file_name, target_language)
     # Generate subtitles
     print("Generating transciption and translating to target language")
