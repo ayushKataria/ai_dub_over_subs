@@ -3,6 +3,9 @@ import torch.nn.functional as F
 import torchaudio
 from transformers import AutoConfig, Wav2Vec2FeatureExtractor
 from gender_classification_models.models import HubertForSpeechClassification
+from transformers.utils import logging
+
+logging.set_verbosity_error()
 
 device = "cpu"
 model_name_or_path = "m3hrdadfi/hubert-base-persian-speech-gender-recognition"

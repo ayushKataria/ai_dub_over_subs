@@ -1,5 +1,8 @@
 from transformers import M2M100ForConditionalGeneration
 from tokenization_small100 import SMALL100Tokenizer
+from transformers.utils import logging
+
+logging.set_verbosity_error()
 
 model = None
 tokenizer = None

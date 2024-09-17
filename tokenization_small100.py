@@ -27,6 +27,8 @@ import sentencepiece
 from transformers.tokenization_utils import BatchEncoding, PreTrainedTokenizer
 from transformers.utils import logging
 
+logging.set_verbosity_error()
+
 
 logger = logging.get_logger(__name__)
 

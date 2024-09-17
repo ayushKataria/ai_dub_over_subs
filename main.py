@@ -4,18 +4,16 @@ from remove_vocals import remove_vocals
 from tts import atts
 import asyncio
 import argparse
-import logging
 import filetype
 
 import get_gender
 from merge_audio_files import merge
 
-logging.getLogger().setLevel(logging.INFO)
-
 async def main(file_name: str, target_language: str, whisper_device: str):
 
     kind = filetype.guess(file_name)
-    if kind != "video/mp4":
+    print(kind)
+    if kind.mime != "video/mp4":
         raise Exception("Invalid file type. It currently supports only mp4")
 
     print(file_name, target_language)
