@@ -1,4 +1,6 @@
 import json
+import os
+import shutil
 from transcribe import transcribe
 from remove_vocals import remove_vocals
 from tts import atts
@@ -36,16 +38,26 @@ async def main(file_name: str, target_language: str, whisper_device: str):
     # Generate tts files
     print("Generating TTS files")
     for subtitle in subtitles:
-        file_name, voice_to_use = await atts(subtitle[f'text_{target_language}'], target_language, gender, voice_to_use, subtitle['end'] - subtitle['start'])
-        subtitle['file_name'] = file_name
+        tts_file_name, voice_to_use = await atts(subtitle[f'text_{target_language}'], target_language, gender, voice_to_use, subtitle['end'] - subtitle['start'])
+        subtitle['file_name'] = tts_file_name
     
     with open("subtitles.json", "w") as file:
         json.dump(subtitles, file)
     # Combine tts files
     print("Merging TTS audio files and video")
-    merge(file_name=file_name)
+    merge(file_name=file_name, target_language=target_language)
     
 
+def cleanup(file_name: str):
+    files_to_remove = ["concat_file.txt", "output.wav", "output_new.wav", "subtitles.json", file_name.replace(".mp4", "_Instruments.wav"), file_name.replace(".mp4", "_Vocals.wav")]
+    folders_to_remove = ["tts_files"]
+    for file_path in files_to_remove:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+    
+    for folder_path in folders_to_remove:
+        if os.path.exists(folder_path):
+            shutil.rmtree(folder_path)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

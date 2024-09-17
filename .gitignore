@@ -4,6 +4,5 @@ whisper_model
 subtitles.json
 *.mp4
 *.wav
-!silence.wav
 *.mp3
 tts_files

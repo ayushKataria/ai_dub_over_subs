@@ -4,7 +4,7 @@ from translate import translate
 
 def transcribe(file_name: str, target_language: str, device: str = "cuda"):
     model = whisper.load_model("small", device=device, download_root="./whisper_model")
-    result = model.transcribe(file_name)
+    result = model.transcribe(file_name, word_timestamps=True)
     print("Audio Languge: " + result["language"])
     segments = result["segments"]
 
