@@ -35,9 +35,19 @@ Where:
     file_name.mp4: is the path to your input video file.
     language: is the target language you want the video to be dubbed in (e.g., en, es, fr, etc.).
 
+### Sample Videos
+Here is an example of a video from youtube converted from English to Hindi Dub.
+English Video:
+
+https://github.com/user-attachments/assets/c1fe1f62-6632-434a-8f72-82bf53adbf41
+
+Hindi Video Dubbed:
+
+https://github.com/user-attachments/assets/24997faf-c09b-43a2-9a8c-3c08718e7cc2
+
 ### Future Improvements
 
 - Audio Sync: Improve the timing between the dubbed audio and the video to create a more natural sync.
 - Translation Models: Replace or enhance the translation model to improve accuracy.
-- TTS Quality: Use more advanced TTS models to achieve more realistic and natural-sounding voices. Maybe use a model that is capable of mimicing the original speakers voice
+- TTS Quality: Use more advanced TTS models to achieve more realistic and natural-sounding voices. Maybe use a model that is capable of mimicing the original speakers voice. The current translations end up needing speeding up or slowing down a lot as edge-tts is seemingly designed for Read Aloud which can be a bit slow.
 - Multi Speaker Support: Identify multiple speakers in the video and dub them with different voices.
