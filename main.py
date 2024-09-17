@@ -4,9 +4,12 @@ from remove_vocals import remove_vocals
 from tts import atts
 import asyncio
 import argparse
+import logging
 
 import get_gender
 from merge_audio_files import merge
+
+logging.getLogger().setLevel(logging.INFO)
 
 async def main(file_name: str, target_language: str, whisper_device: str):
     print(file_name, target_language)
