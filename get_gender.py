@@ -4,7 +4,7 @@ import torchaudio
 from transformers import AutoConfig, Wav2Vec2FeatureExtractor
 from gender_classification_models.models import HubertForSpeechClassification
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = "cpu"
 model_name_or_path = "m3hrdadfi/hubert-base-persian-speech-gender-recognition"
 config = AutoConfig.from_pretrained(model_name_or_path)
 feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(model_name_or_path)
