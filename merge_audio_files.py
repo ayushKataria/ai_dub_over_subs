@@ -1,5 +1,6 @@
 import subprocess
 import json
+import math
 from moviepy.editor import *
 
 def merge(file_name: str, target_language: str = ""):
@@ -14,10 +15,13 @@ def merge(file_name: str, target_language: str = ""):
         end = 0
         for subtitle in subtitles:
             update_audio_file(subtitle['file_name'])
-            silence_length = round((subtitle['start'] - end), 2)
+
+            silence_length = math.floor((subtitle['start'] - end))
+
             file.write("file silence.wav\n")
             file.write(f"outpoint {silence_length}\n")
             file.write(f"file {subtitle['file_name']}\n")
+            
             end = subtitle['end']
     
     subprocess.call(['ffmpeg', "-loglevel", "error", "-y", '-safe', '0', '-f', 'concat', '-i', 'concat_file.txt', 'output.wav'])

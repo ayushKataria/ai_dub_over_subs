@@ -51,6 +51,7 @@ def get_expected_rate(wav_file: str, expected_duration: float):
     return rate
 
 
+
 if __name__ == "__main__":
     asyncio.run(atts("यदि आप इस ऐप को कैसे बनाया गया है के बारे में सभी विवरण चाहते हैं", duration = 3))
 

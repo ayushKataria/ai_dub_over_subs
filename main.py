@@ -24,6 +24,7 @@ async def main(file_name: str, target_language: str, whisper_device: str):
 
     with open("subtitles.json", "r") as file:
         subtitles = json.load(file)
+        print(len(subtitles))
 
     # Generate instrumental track
     print("Removing existing vocals from video")
@@ -32,7 +33,7 @@ async def main(file_name: str, target_language: str, whisper_device: str):
     # Get the gender of the speaker
     print("Predicting the gender of speaker for tts")
     gender = get_gender.predict(file_name.replace(".mp4", "_Instruments.wav"))
-    # gender = "Female"
+    gender = "Female"
 
     voice_to_use = None
     # Generate tts files
@@ -46,10 +47,14 @@ async def main(file_name: str, target_language: str, whisper_device: str):
     # Combine tts files
     print("Merging TTS audio files and video")
     merge(file_name=file_name, target_language=target_language)
+
+    # Cleanup extra files generated
+    print("Cleaning up intermediate files")
+    cleanup(file_name=file_name)
     
 
 def cleanup(file_name: str):
-    files_to_remove = ["concat_file.txt", "output.wav", "output_new.wav", "subtitles.json", file_name.replace(".mp4", "_Instruments.wav"), file_name.replace(".mp4", "_Vocals.wav")]
+    files_to_remove = ["concat_file.txt", "output.wav", "output_new.wav", "subtitles.json", "silence.wav", file_name.replace(".mp4", "_Instruments.wav"), file_name.replace(".mp4", "_Vocals.wav")]
     folders_to_remove = ["tts_files"]
     for file_path in files_to_remove:
         if os.path.exists(file_path):

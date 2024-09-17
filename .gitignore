@@ -7,3 +7,4 @@ subtitles.json
 *.mp3
 tts_files
 concat_file.txt
+silence.wav
