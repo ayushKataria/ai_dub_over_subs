@@ -6,3 +6,4 @@ subtitles.json
 *.wav
 *.mp3
 tts_files
+concat_file.txt
