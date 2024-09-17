@@ -30,27 +30,29 @@ async def atts(text: str, language: str = "hi", gender: str = "Male", voice_to_u
     file_name = folder_path + "/" + str(uuid.uuid4()) + ".wav"
     await communicate.save(file_name)
     if not(duration is None):
-        file_name = update_wav_speed(file_name, duration, folder_path)
+        rate = get_expected_rate(file_name, duration)
+    else:
+        rate = "+0%"
+    os.remove(file_name)
+    communicate = edge_tts.Communicate(text, voice_to_use, rate=rate)
+    file_name = folder_path + "/" + str(uuid.uuid4()) + ".wav"
+    await communicate.save(file_name)
     return file_name, voice_to_use
 
-def update_wav_speed(wav_file: str, expected_duration: float, folder_path: str = "./"):
-    current_duration = librosa.get_duration(filename=wav_file)
-    speed = min(max(round(current_duration / expected_duration, 1), 0.5), 100)
-    print(f"Speed: {speed}")
-    new_file_name = folder_path + "/" + str(uuid.uuid4()) + ".wav"
-    new_new_file_name = folder_path + "/" + str(uuid.uuid4()) + ".wav"
-    
-    subprocess.call(["ffmpeg", "-loglevel", "error", "-y", "-i", wav_file, "-af", f"atempo={speed}", new_file_name])
+def get_expected_rate(wav_file: str, expected_duration: float):
+    current_duration = librosa.get_duration(path=wav_file)
+    speed = int((current_duration / expected_duration) * 100) - 100
+    rate = ""
+    if speed > 0:
+        rate = "+"
+    rate += str(speed) + "%"
+    print(f"Rate: {rate}")
 
-    subprocess.call(["ffmpeg", "-loglevel", "error", "-i", new_file_name, "-f", "wav", "-bitexact", "-acodec", "pcm_s16le", new_new_file_name])
-
-    os.remove(wav_file)
-    os.remove(new_file_name)
-    return new_new_file_name
+    return rate
 
 
 
 
 if __name__ == "__main__":
-    asyncio.run(atts("यदि आप इस ऐप को कैसे बनाया गया है के बारे में सभी विवरण चाहते हैं", duration = 8))
+    asyncio.run(atts("यदि आप इस ऐप को कैसे बनाया गया है के बारे में सभी विवरण चाहते हैं", duration = 3))
 

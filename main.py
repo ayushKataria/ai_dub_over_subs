@@ -12,7 +12,6 @@ from merge_audio_files import merge
 async def main(file_name: str, target_language: str, whisper_device: str):
 
     kind = filetype.guess(file_name)
-    print(kind)
     if kind.mime != "video/mp4":
         raise Exception("Invalid file type. It currently supports only mp4")
 
@@ -44,7 +43,7 @@ async def main(file_name: str, target_language: str, whisper_device: str):
         json.dump(subtitles, file)
     # Combine tts files
     print("Merging TTS audio files and video")
-    merge(folder_name=".\tts_files")
+    merge(file_name=file_name)
     
 
 
