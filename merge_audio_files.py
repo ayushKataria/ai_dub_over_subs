@@ -3,18 +3,18 @@ import json
 import math
 from moviepy.editor import *
 
-def merge(file_name: str, target_language: str = ""):
+def merge(file_name: str, target_language: str = "", device: str = "cpu"):
     with open("subtitles.json", "r") as file:
         subtitles = json.load(file)
     
     # Create updated silence file larger than the video
     duration = subtitles[-1]['end'] + 100               # Fetched the end of last subtitle and added 100 just for safety
-    generate_silent_wav("silence.wav", duration)
+    generate_silent_wav("silence.wav", duration, device)
     
     with open("concat_file.txt", "w") as file:
         end = 0
         for subtitle in subtitles:
-            update_audio_file(subtitle['file_name'])
+            update_audio_file(subtitle['file_name'], device)
 
             silence_length = math.floor((subtitle['start'] - end))
 
@@ -24,9 +24,15 @@ def merge(file_name: str, target_language: str = ""):
             
             end = subtitle['end']
     
-    subprocess.call(['ffmpeg', "-loglevel", "error", "-y", '-safe', '0', '-f', 'concat', '-i', 'concat_file.txt', 'output.wav'])
+    command = ['ffmpeg', "-loglevel", "error", "-y", '-safe', '0', '-f', 'concat', '-i', 'concat_file.txt', 'output.wav']
+    if device == "cuda":
+        command += ["-hwaccel", "cuda"]
+    subprocess.call(command)
 
-    subprocess.call(["ffmpeg", "-loglevel", "error", "-y", "-i", "output.wav", "-f", "wav", "-bitexact", "-acodec", "pcm_s16le", "output_new.wav"])
+    command = ["ffmpeg", "-loglevel", "error", "-y", "-i", "output.wav", "-f", "wav", "-bitexact", "-acodec", "pcm_s16le", "output_new.wav"]
+    if device == "cuda":
+        command += ["-hwaccel", "cuda"]
+    subprocess.call(command)
 
     # new_file = update_wav_speed("output_new.wav", 300, "./")
 
@@ -39,7 +45,7 @@ def merge(file_name: str, target_language: str = ""):
     new_clip_with_audio = new_clip.set_audio(audioclip_combined) 
     new_clip_with_audio.write_videofile(file_name.replace(".mp4", f"_{target_language}.mp4"))
 
-def generate_silent_wav(output_file, duration):
+def generate_silent_wav(output_file, duration, device = "cpu"):
     # ffmpeg command to generate a silent WAV file
     command = [
         'ffmpeg', '-y',  # Overwrite output file if exists
@@ -51,6 +57,9 @@ def generate_silent_wav(output_file, duration):
         output_file  # Output file
     ]
 
+    if device == "cuda":
+        command += ["-hwaccel", "cuda"]
+
     try:
         # Execute the command
         subprocess.run(command, check=True)
@@ -58,7 +67,7 @@ def generate_silent_wav(output_file, duration):
     except subprocess.CalledProcessError as e:
         print(f"Error while generating the silent WAV file: {e}")
 
-def update_audio_file(file_path):
+def update_audio_file(file_path, device):
     # Define a temporary output file name
     temp_file = file_path + ".temp.wav"
 
@@ -72,6 +81,9 @@ def update_audio_file(file_path):
         '-b:a', '384k',  # Set the bitrate to 384 kbps
         temp_file  # Temporary output file
     ]
+
+    if device == "cuda":
+        command += ["-hwaccel", "cuda"]
 
     try:
         # Execute the command

@@ -8,11 +8,13 @@ import asyncio
 import argparse
 import filetype
 from time import time
+import gc
+import torch
 
 import get_gender
 from merge_audio_files import merge
 
-async def main(file_name: str, target_language: str, whisper_device: str):
+async def main(file_name: str, target_language: str, device: str):
     start = time()
 
     kind = filetype.guess(file_name)
@@ -22,7 +24,12 @@ async def main(file_name: str, target_language: str, whisper_device: str):
     print(file_name, target_language)
     # Generate subtitles
     print("Generating transciption and translating to target language")
-    transcribe(file_name, target_language, device=whisper_device)
+    transcribe(file_name, target_language, device=device)
+
+    # Removing model from memory
+    if device == "cuda":
+        gc.collect()
+        torch.cuda.empty_cache()
 
     with open("subtitles.json", "r") as file:
         subtitles = json.load(file)
@@ -30,12 +37,22 @@ async def main(file_name: str, target_language: str, whisper_device: str):
 
     # Generate instrumental track
     print("Removing existing vocals from video")
-    remove_vocals(file_name)
+    remove_vocals(file_name, device)
+
+    # Removing model from memory
+    if device == "cuda":
+        gc.collect()
+        torch.cuda.empty_cache()
 
     # Get the gender of the speaker
     print("Predicting the gender of speaker for tts")
-    gender = get_gender.predict(file_name.replace(".mp4", "_Instruments.wav"))
-    gender = "Female"
+    gender = get_gender.predict(file_name.replace(".mp4", "_Instruments.wav"), device = device)
+    # gender = "Female"
+
+    # Removing model from memory
+    if device == "cuda":
+        gc.collect()
+        torch.cuda.empty_cache()
 
     voice_to_use = None
     # Generate tts files
@@ -48,7 +65,7 @@ async def main(file_name: str, target_language: str, whisper_device: str):
         json.dump(subtitles, file)
     # Combine tts files
     print("Merging TTS audio files and video")
-    merge(file_name=file_name, target_language=target_language)
+    merge(file_name=file_name, target_language=target_language, device=device)
 
     # Cleanup extra files generated
     print("Cleaning up intermediate files")
@@ -73,7 +90,19 @@ if __name__ == "__main__":
                     description='It takes a path to a video file and dubs the audio to a given language')
     parser.add_argument("-f", "--file", required=True, help="Video file path")
     parser.add_argument("-l", "--language", required=True, help="Target language")
-    parser.add_argument("-d", "--device", required=False, default="cuda", help="Device for whisper model (all other models are loaded in CPU for now)")
-    
+    parser.add_argument("-d", "--device", required=False, default=None, help="Device for all the model")
     args = parser.parse_args()
-    asyncio.run(main(args.file, args.language, args.device))
+
+    device = args.device
+    if torch.cuda.is_available(): 
+        if args.device is None:
+            device = "cuda"
+    else:
+        if args.device is None:
+            device = "cpu"
+        if args.device == "cuda":
+            raise Exception("Cuda not available")
+    
+    print(f"Using device: {device}")
+    
+    asyncio.run(main(args.file, args.language, device))
