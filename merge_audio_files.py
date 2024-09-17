@@ -1,7 +1,6 @@
 import subprocess
 import json
 from moviepy.editor import *
-from tts import update_wav_speed
 
 def merge(file_name: str, target_language: str = ""):
     with open("subtitles.json", "r") as file:
