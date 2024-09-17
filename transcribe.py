@@ -3,7 +3,7 @@ import json
 from translate import translate
 
 def transcribe(file_name: str, target_language: str, device: str = "cuda"):
-    model = whisper.load_model("medium", device=device, download_root="./whisper_model")
+    model = whisper.load_model("small", device=device, download_root="./whisper_model")
     result = model.transcribe(file_name)
     print("Audio Languge: " + result["language"])
     segments = result["segments"]
