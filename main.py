@@ -7,11 +7,13 @@ from tts import atts
 import asyncio
 import argparse
 import filetype
+from time import time
 
 import get_gender
 from merge_audio_files import merge
 
 async def main(file_name: str, target_language: str, whisper_device: str):
+    start = time()
 
     kind = filetype.guess(file_name)
     if kind.mime != "video/mp4":
@@ -52,6 +54,7 @@ async def main(file_name: str, target_language: str, whisper_device: str):
     print("Cleaning up intermediate files")
     cleanup(file_name=file_name)
     
+    print(f"Time taken for Dub: {time() - start}")
 
 def cleanup(file_name: str):
     files_to_remove = ["concat_file.txt", "output.wav", "output_new.wav", "subtitles.json", "silence.wav", file_name.replace(".mp4", "_Instruments.wav"), file_name.replace(".mp4", "_Vocals.wav")]
