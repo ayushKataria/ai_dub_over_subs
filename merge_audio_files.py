@@ -14,9 +14,9 @@ def merge(file_name: str, target_language: str = ""):
             file.write(f"file {subtitle['file_name']}\n")
             # file.write("file silence.wav\n")
     
-    subprocess.call(['ffmpeg', '-f', 'concat', '-safe', '0', '-i', 'concat_file.txt', '-c', 'copy', 'output.wav'])
+    subprocess.call(['ffmpeg', "-loglevel", "error", '-f', 'concat', '-safe', '0', '-i', 'concat_file.txt', '-c', 'copy', 'output.wav'])
 
-    subprocess.call(["ffmpeg", "-i", "output.wav", "-f", "wav", "-bitexact", "-acodec", "pcm_s16le", "output_new.wav"])
+    subprocess.call(["ffmpeg", "-loglevel", "error", "-i", "output.wav", "-f", "wav", "-bitexact", "-acodec", "pcm_s16le", "output_new.wav"])
 
     # new_file = update_wav_speed("output_new.wav", 300, "./")
 

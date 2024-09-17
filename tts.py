@@ -40,9 +40,9 @@ def update_wav_speed(wav_file: str, expected_duration: float, folder_path: str =
     new_file_name = folder_path + "/" + str(uuid.uuid4()) + ".wav"
     new_new_file_name = folder_path + "/" + str(uuid.uuid4()) + ".wav"
     
-    subprocess.call(["ffmpeg", "-y", "-i", wav_file, "-af", f"atempo={speed}", new_file_name])
+    subprocess.call(["ffmpeg", "-loglevel", "error", "-y", "-i", wav_file, "-af", f"atempo={speed}", new_file_name])
 
-    subprocess.call(["ffmpeg", "-i", new_file_name, "-f", "wav", "-bitexact", "-acodec", "pcm_s16le", new_new_file_name])
+    subprocess.call(["ffmpeg", "-loglevel", "error", "-i", new_file_name, "-f", "wav", "-bitexact", "-acodec", "pcm_s16le", new_new_file_name])
 
     os.remove(wav_file)
     os.remove(new_file_name)
