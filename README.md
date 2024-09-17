@@ -45,6 +45,13 @@ Hindi Video Dubbed:
 
 https://github.com/user-attachments/assets/24997faf-c09b-43a2-9a8c-3c08718e7cc2
 
+### Performance
+
+- The Making a smart closet with ML.mp4 which is a 5 minute 26 second video took **11 minutes and 10 seconds** with Whisper on GPU and all other models on CPU.
+- The same video took **3 min 59 sec** with all models and most of the ffmpeg commands on GPU.
+
+The GPU used was a Laptop RTX 4060.
+
 ### Future Improvements
 
 - Audio Sync: Improve the timing between the dubbed audio and the video to create a more natural sync.
