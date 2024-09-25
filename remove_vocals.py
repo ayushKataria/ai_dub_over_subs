@@ -1,7 +1,12 @@
 import subprocess
+import sys
+import os
 
 def remove_vocals(file_name: str, device: str):
-    commands = [r"./.venv/Scripts/python.exe", "vocal-remover\inference.py", "--input", file_name, "--output_dir", r"./"]
+    python_path = sys.executable
+    inference_path = os.path.join("vocal-remover", "inference.py")
+
+    commands = [python_path, inference_path, "--input", file_name, "--output_dir", r"."]
     if device == "cuda":
         commands += ["--gpu", "0"]
     subprocess.call(commands)
