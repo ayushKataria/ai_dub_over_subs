@@ -3,6 +3,8 @@ import json
 import math
 from moviepy.editor import *
 
+slow_langs = ["hi"]
+
 def merge(file_name: str, target_language: str = "", device: str = "cpu"):
     with open("subtitles.json", "r") as file:
         subtitles = json.load(file)
@@ -13,10 +15,16 @@ def merge(file_name: str, target_language: str = "", device: str = "cpu"):
     
     with open("concat_file.txt", "w") as file:
         end = 0
+        silence_debt = 0
         for subtitle in subtitles:
             update_audio_file(subtitle['file_name'], device)
 
             silence_length = math.floor((subtitle['start'] - end))
+            silence_debt += ((subtitle['start'] - end)) - float(silence_length)
+
+            if silence_debt >= 1.5 and target_language not in slow_langs:
+                silence_length += 1
+                silence_debt -= 1.5
 
             file.write("file silence.wav\n")
             file.write(f"outpoint {silence_length}\n")
