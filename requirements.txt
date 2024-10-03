@@ -16,3 +16,5 @@ edge-tts
 moviepy
 filetype
 accelerate
+TTS
+pydub

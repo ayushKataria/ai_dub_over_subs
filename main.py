@@ -4,6 +4,8 @@ import shutil
 from transcribe import transcribe
 from remove_vocals import remove_vocals
 from tts import atts
+from xtts import axtts
+import subprocess
 import asyncio
 import argparse
 import filetype
@@ -14,7 +16,7 @@ import torch
 import get_gender
 from merge_audio_files import merge
 
-async def main(file_name: str, target_language: str, device: str):
+async def main(file_name: str, target_language: str, device: str, tts_model: str):
     start = time()
 
     kind = filetype.guess(file_name)
@@ -33,7 +35,6 @@ async def main(file_name: str, target_language: str, device: str):
 
     with open("subtitles.json", "r") as file:
         subtitles = json.load(file)
-        print(len(subtitles))
 
     # Generate instrumental track
     print("Removing existing vocals from video")
@@ -46,8 +47,8 @@ async def main(file_name: str, target_language: str, device: str):
 
     # Get the gender of the speaker
     print("Predicting the gender of speaker for tts")
-    gender = get_gender.predict(file_name.replace(".mp4", "_Instruments.wav"), device = device)
-    # gender = "Female"
+    if tts_model == "edge":
+        gender = get_gender.predict(file_name.replace(".mp4", "_Instruments.wav"), device = device)
 
     # Removing model from memory
     if device == "cuda":
@@ -55,11 +56,21 @@ async def main(file_name: str, target_language: str, device: str):
         torch.cuda.empty_cache()
 
     voice_to_use = None
+    reference_wav = get_reference_wav(input_file=file_name.replace(".mp4", "_Vocals.wav"), output_file="reference.wav", start=subtitles[0]['start'], end=subtitles[0]['start']+60)
     # Generate tts files
     print("Generating TTS files")
     for subtitle in subtitles:
-        tts_file_name, voice_to_use = await atts(subtitle[f'text_{target_language}'], target_language, gender, voice_to_use, subtitle['end'] - subtitle['start'])
-        subtitle['file_name'] = tts_file_name
+        if tts_model == "edge":
+            tts_file_name = await atts(text=subtitle[f'text_{target_language}'], language=target_language, gender=gender, voice_to_use=voice_to_use, duration=subtitle['end'] - subtitle['start'])
+            subtitle['file_name'] = tts_file_name
+        elif tts_model == "xtts":
+            tts_file_name = await axtts(text=subtitle[f'text_{target_language}'], language=target_language, reference_wav=reference_wav, duration=subtitle['end'] - subtitle['start'])
+            subtitle['file_name'] = tts_file_name
+
+    # Removing model from memory
+    if device == "cuda":
+        gc.collect()
+        torch.cuda.empty_cache()
     
     with open("subtitles.json", "w") as file:
         json.dump(subtitles, file)
@@ -72,6 +83,27 @@ async def main(file_name: str, target_language: str, device: str):
     cleanup(file_name=file_name)
     
     print(f"Time taken for Dub: {time() - start}")
+
+def get_reference_wav(input_file: str, output_file: str, start: float, end: float):
+    if (end - start) < 6:
+        end = start + 6
+    # Command to crop the audio using ffmpeg
+    command = [
+        'ffmpeg',
+        '-loglevel', 'error',           # loglevel set to error
+        '-y',                           # allow the overwrite
+        '-i', input_file,               # Input file
+        '-ss', str(start),              # Start time
+        '-to', str(end),                # End time
+        '-c', 'copy',                   # Copy codec (no re-encoding)
+        output_file                     # Output file
+    ]
+    
+
+    subprocess.run(command, check=True)
+    print(f"Cropped file saved as {output_file}")
+    return output_file
+
 
 def cleanup(file_name: str):
     files_to_remove = ["concat_file.txt", "output.wav", "output_new.wav", "subtitles.json", "silence.wav", file_name.replace(".mp4", "_Instruments.wav"), file_name.replace(".mp4", "_Vocals.wav")]
@@ -91,6 +123,7 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--file", required=True, help="Video file path")
     parser.add_argument("-l", "--language", required=True, help="Target language")
     parser.add_argument("-d", "--device", required=False, default=None, help="Device for all the model")
+    parser.add_argument("-t", "--tts", required=False, default="edge", choices=["edge", "xtts"], help="TTS model to use, supports edge-tts and xtts currently")
     args = parser.parse_args()
 
     device = args.device
@@ -105,4 +138,4 @@ if __name__ == "__main__":
     
     print(f"Using device: {device}")
     
-    asyncio.run(main(args.file, args.language, device))
+    asyncio.run(main(args.file, args.language, device, args.tts))

@@ -18,7 +18,7 @@ def translate(text: str, target_language: str, device: str = 'cpu'):
     encoded = tokenizer(text, return_tensors="pt").to(device)
     generated_tokens = model.generate(**encoded)
     article_hi = tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)
-    return article_hi
+    return article_hi[0]
 
 if __name__ == "__main__":
     print(translate("Life is a box of chocolates", "hi", "cuda"))

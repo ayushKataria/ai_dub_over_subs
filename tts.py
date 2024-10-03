@@ -29,7 +29,7 @@ async def atts(text: str, language: str = "hi", gender: str = "Male", voice_to_u
     communicate = edge_tts.Communicate(text, voice_to_use)
     file_name = folder_path + "/" + str(uuid.uuid4()) + ".wav"
     await communicate.save(file_name)
-    if not(duration is None):
+    if duration is not None:
         rate = get_expected_rate(file_name, duration)
     else:
         rate = "+0%"
@@ -53,5 +53,5 @@ def get_expected_rate(wav_file: str, expected_duration: float):
 
 
 if __name__ == "__main__":
-    asyncio.run(atts("यदि आप इस ऐप को कैसे बनाया गया है के बारे में सभी विवरण चाहते हैं", duration = 3))
+    asyncio.run(atts("यदि आप इस ऐप को कैसे बनाया गया है के बारे में सभी विवरण चाहते हैं"))
 

@@ -12,6 +12,6 @@ def remove_vocals(file_name: str, device: str):
     subprocess.call(commands)
 
 if __name__ == "__main__":
-    remove_vocals("Making a smart closet with ML.mp4")
+    remove_vocals("Making a smart closet with ML.mp4", device="cuda")
     
 
