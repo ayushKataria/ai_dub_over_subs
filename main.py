@@ -3,7 +3,7 @@ import os
 import shutil
 from transcribe import transcribe
 from remove_vocals import remove_vocals
-from tts import atts
+from edge_tts import atts
 from xtts import axtts
 import subprocess
 import asyncio
