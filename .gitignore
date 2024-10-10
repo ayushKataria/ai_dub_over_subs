@@ -3,6 +3,7 @@ __pycache__
 whisper_model
 subtitles.json
 *.mp4
+*.mkv
 *.wav
 *.mp3
 tts_files

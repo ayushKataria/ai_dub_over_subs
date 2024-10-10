@@ -3,7 +3,7 @@ import os
 import shutil
 from transcribe import transcribe
 from remove_vocals import remove_vocals
-from edge_tts import atts
+from tts import atts
 from xtts import axtts
 import subprocess
 import asyncio
@@ -61,8 +61,10 @@ async def main(file_name: str, target_language: str, device: str, tts_model: str
     print("Generating TTS files")
     for subtitle in subtitles:
         if tts_model == "edge":
-            tts_file_name = await atts(text=subtitle[f'text_{target_language}'], language=target_language, gender=gender, voice_to_use=voice_to_use, duration=subtitle['end'] - subtitle['start'])
+            tts_file_name, voice_to_use, video_slow_down, audio_rate = await atts(text=subtitle[f'text_{target_language}'], language=target_language, gender=gender, voice_to_use=voice_to_use, duration=subtitle['end'] - subtitle['start'])
             subtitle['file_name'] = tts_file_name
+            subtitle['video_slow_down'] = video_slow_down
+            subtitle['audio_rate'] = audio_rate
         elif tts_model == "xtts":
             tts_file_name = await axtts(text=subtitle[f'text_{target_language}'], language=target_language, reference_wav=reference_wav, duration=subtitle['end'] - subtitle['start'])
             subtitle['file_name'] = tts_file_name
@@ -80,7 +82,7 @@ async def main(file_name: str, target_language: str, device: str, tts_model: str
 
     # Cleanup extra files generated
     print("Cleaning up intermediate files")
-    cleanup(file_name=file_name)
+    # cleanup(file_name=file_name)
     
     print(f"Time taken for Dub: {time() - start}")
 
@@ -106,7 +108,7 @@ def get_reference_wav(input_file: str, output_file: str, start: float, end: floa
 
 
 def cleanup(file_name: str):
-    files_to_remove = ["concat_file.txt", "output.wav", "output_new.wav", "subtitles.json", "silence.wav", file_name.replace(".mp4", "_Instruments.wav"), file_name.replace(".mp4", "_Vocals.wav")]
+    files_to_remove = ["concat_file.txt", "output.wav", "output_new.wav", "silence.wav", file_name.replace(".mp4", "_Instruments.wav"), file_name.replace(".mp4", "_Vocals.wav")]
     folders_to_remove = ["tts_files"]
     for file_path in files_to_remove:
         if os.path.exists(file_path):

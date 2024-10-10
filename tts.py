@@ -30,14 +30,14 @@ async def atts(text: str, language: str = "hi", gender: str = "Male", voice_to_u
     file_name = folder_path + "/" + str(uuid.uuid4()) + ".wav"
     await communicate.save(file_name)
     if duration is not None:
-        rate = get_expected_rate(file_name, duration)
+        rate, video_slow_down = get_expected_rate(file_name, duration)
     else:
-        rate = "+0%"
+        rate, video_slow_down = "+0%", 0
     os.remove(file_name)
     communicate = edge_tts.Communicate(text, voice_to_use, rate=rate)
     file_name = folder_path + "/" + str(uuid.uuid4()) + ".wav"
     await communicate.save(file_name)
-    return file_name, voice_to_use
+    return file_name, voice_to_use, video_slow_down, rate
 
 def get_expected_rate(wav_file: str, expected_duration: float):
     current_duration = librosa.get_duration(path=wav_file)
@@ -45,10 +45,15 @@ def get_expected_rate(wav_file: str, expected_duration: float):
     rate = ""
     if speed > 0:
         rate = "+"
+    
+    video_slow_down = 1
+    if speed > 100:
+        video_slow_down = ((current_duration / 2) / expected_duration)
+        speed = 100 
     rate += str(speed) + "%"
     print(f"Rate: {rate}")
 
-    return rate
+    return rate, video_slow_down
 
 
 
