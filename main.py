@@ -82,7 +82,7 @@ async def main(file_name: str, target_language: str, device: str, tts_model: str
 
     # Cleanup extra files generated
     print("Cleaning up intermediate files")
-    # cleanup(file_name=file_name)
+    cleanup(file_name=file_name)
     
     print(f"Time taken for Dub: {time() - start}")
 

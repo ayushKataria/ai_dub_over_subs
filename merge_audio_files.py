@@ -1,7 +1,10 @@
 import subprocess
 import json
 import math
+import os
+from tqdm import tqdm
 from moviepy.editor import *
+from pydub import AudioSegment
 
 slow_langs = ["hi"]
 
@@ -21,7 +24,8 @@ def merge(file_name: str, target_language: str = "", device: str = "cpu"):
         added_seconds = 0
         index = 0
         is_first = True
-        for subtitle in subtitles:
+        print("Updating the video and audio to sync up")
+        for subtitle in tqdm(subtitles):
             update_audio_file(subtitle['file_name'], device)
 
             silence_length = math.floor((subtitle['start'] - end))
@@ -37,13 +41,14 @@ def merge(file_name: str, target_language: str = "", device: str = "cpu"):
             
             end = subtitle['end']
 
-            if subtitle['video_slow_down'] != 1:
+            if subtitle['video_slow_down'] != 1 and subtitle['video_slow_down'] != 0:
                 if is_first:
                     is_first = False
                     lossless_output = slow_down_video(file_name, subtitle['start'] + added_seconds, subtitle['end'] + added_seconds, subtitle['video_slow_down'])
                 else:
                     lossless_output = slow_down_video(lossless_output, subtitle['start'] + added_seconds, subtitle['end'] + added_seconds, subtitle['video_slow_down'], True)
                     index += 1
+                slow_down_audio(file_name.replace(".mp4", "_Instruments.wav"), subtitle['start'] + added_seconds, subtitle['end'] + added_seconds, subtitle['video_slow_down'])
                 added_seconds += (subtitle['end'] - subtitle['start']) * (subtitle['video_slow_down'] - 1)
 
     if lossless_output != None:
@@ -133,7 +138,7 @@ def slow_down_video(input_video, start_time, end_time, slow_factor, remove_input
     # Load the video
     video = VideoFileClip(input_video)
 
-    print(start_time, end_time, i)
+    # print(start_time, end_time, i)
     # 1. Extract the first part (before the slow-motion segment)
     part1 = video.subclip(0, start_time)
 
@@ -157,6 +162,7 @@ def slow_down_video(input_video, start_time, end_time, slow_factor, remove_input
     i+=1
     final_video.write_videofile(lossless_output, codec="ffv1", preset="ultrafast", audio=False, fps=video.fps, logger=None)
 
+    video.close()
     if remove_input_file:
         os.remove(input_video)
 
@@ -171,6 +177,42 @@ def final_encode_lossless_to_final(intermediate_video, output_video, crf=18, bit
     lossless_clip.write_videofile(output_video, audio=False, logger=None)
 
     return output_video
+
+def slow_down_audio(input_audio, start_time, end_time, slow_factor):
+    # Load the original audio file
+    audio = AudioSegment.from_file(input_audio)
+
+    # Convert start_time and end_time from seconds to milliseconds
+    start_time_ms = start_time * 1000
+    end_time_ms = end_time * 1000
+
+    # 1. Extract the first part (before the slow-motion segment)
+    part1 = audio[:start_time_ms]
+
+    # 2. Extract the slow-motion part and apply the slow factor
+    slow_part = audio[start_time_ms:end_time_ms]._spawn(audio[start_time_ms:end_time_ms].raw_data, overrides={
+        "frame_rate": int(audio.frame_rate / slow_factor)
+    }).set_frame_rate(audio.frame_rate)
+
+    # 3. Extract the third part (after the slow-motion segment)
+    part3 = audio[end_time_ms:]
+
+    # 4. Concatenate the audio parts together
+    final_audio = part1 + slow_part + part3
+
+    # 5. Export the result to the desired format (MP3, WAV, FLAC, etc.)
+     # 5. Write the result to a temporary file
+    temp_output = input_audio + ".tmp"
+    final_audio.export(temp_output, format=input_audio.split('.')[-1])
+
+    # 6. Replace the original file with the temporary file
+    try:
+        os.replace(temp_output, input_audio)
+    except Exception as e:
+        # Clean up the temporary file if error occurs
+        os.remove(temp_output)
+        raise e
+        
 
 if __name__ == "__main__":
     merge(file_name="Making a smart closet with ML.mp4", target_language="hi")
